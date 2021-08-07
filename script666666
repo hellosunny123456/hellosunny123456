@@ -1,0 +1,1336 @@
+/*diantao*/
+u.addTask('diantao_open').settype(u.TASK_INNER).run = function() {
+	o.println('open diantao');
+
+	pkg = d.getCurrentPackageName();
+	if (pkg.equalsIgnoreCase('com.taobao.live')) 
+		return true;
+  	
+	d.wakeUp();
+
+  	if(!u.open('com.taobao.live'))
+    		return false;
+
+  	u.sleep(10, 15);
+  	u.click(u.ns().id('com.taobao.live:id/tv_teenager_ok'), 2, 5);
+
+	return true;
+};
+
+u.addTask('diantao_entercenter').settype(u.TASK_INNER).run = function() {
+  	o.println('enter center');
+
+  	if (!u.getTask('diantao_open').run())
+		return false;
+
+  	if (u.ns().text('元宝中心').o() != null){
+		if((obj = u.ns().textContains("今日已赚").o()) != null){
+			u.updateIncScore("diantao", obj.getFather().getChild(3).getText());
+		}
+
+		return true;
+	}
+
+  	while((obj = u.ns().resourceId('com.taobao.live:id/gold_common_image').o()) == null){
+		u.back(2, 5);
+		u.click(u.ns().textContains("我知道"), 2, 5);
+	}
+  	
+	if(obj == null)
+		return false;
+
+	u.click(obj).sleep(5, 10);
+
+  	if ((obj = u.ns().text('立即签到').o()) != null) {
+    		u.click(obj).sleep(2, 5);
+    		u.click(u.ns().className('android.view.View'), 2, 5);
+    		u.back().sleep(2, 5);
+  	}
+	
+	o.println("enter center ok!");
+	if((obj = u.ns().textContains("今日已赚").o()) != null){
+		u.updateIncScore("diantao", obj.getFather().getChild(3).getText());
+	}
+
+	return true;
+};
+
+u.addTask('diantao_watchvideo').settype(u.TASK_INNER).run = function() {
+  	o.println('watchvideo');
+  	while (u.ns().id('com.taobao.live:id/task_center_iv').o() != null) {
+    		o.println('scrollUp');
+    		u.scrollUp(u.ns().id('com.taobao.live:id/item_favor_frame').o()).sleep(5, 10);
+  	} 
+
+	o.println('exit video');
+  	u.back().sleep(3, 5);
+};
+
+u.addTask('diantao_watchlive').settype(u.TASK_INNER).run = function() {
+  	o.println('watchlive');
+  	o.println('close follow');
+  	if (u.ns().descContains('拼手速').o() != null) {
+    		u.click(u.ns().NAF().index(1)).sleep(2, 5);
+  	}  
+
+	while (u.ns().id('com.taobao.live:id/task_center_time').o() != null) {
+    		u.click(u.ns().NAF().className('android.widget.FrameLayout'), 2, 5);
+    		o.println('scrollUp');
+    		u.scrollUp(u.ns().className('android.widget.FrameLayout').index(0)).sleep(20, 40);
+  	}
+	
+	o.println('exit live');
+  	u.back().sleep(3, 5);
+};
+
+u.addTask('diantao_work').settype(u.TASK_ONETIME).setHours(0, 18).run = function() {
+  	if (!u.getTask('diantao_entercenter').run())
+		return false;
+
+  	o.println('enter work');
+  	while ((obj = u.ns().className('android.view.View').text('打工赚元宝').o()) == null) {
+    		u.scrollUp(u.ns().className('android.webkit.WebView').text('元宝中心'), 2, 5);
+  	}
+	
+	u.click(obj.getFather()).sleep(5, 10);
+
+  	o.println('sign work');
+  	u.click(u.ns().id('sign-panel-btn'), 5, 10);
+
+	if(u.ns().textContains('红包已到账').o() != null){
+		o.println("close hongbao");
+		u.back(2, 5);
+
+		o.println("reenter work!");
+		if((obj = u.ns().className('android.view.View').text('打工赚元宝').o()) != null)
+			u.click(obj).sleep(5, 10);
+	}
+
+  	while (true) {
+    		o.println('get power');
+    		if (u.ns().id('action-drink').o().getChild(2) == null) {
+      			u.click(u.ns().id('action-drink'), 2, 5);
+    		} 
+
+		o.println('get score');
+    		if (u.ns().id('action-main').o().getChild(4) == null) {
+      			u.click(u.ns().id('action-main'), 2, 5);
+      			if (u.ns().className('android.view.View').text('开始打工').o() != null) {
+        			power = u.i(u.ns().id('header-physical-text').o().getText());
+        			if (power >= 2000) {
+          				o.println('cooking work');
+          				u.click(u.ns().className('android.view.View').text('做饭'), 2, 5);
+        			}
+				
+				if (power >= 300 && power < 2000) {
+          				o.println('singing work');
+          				u.click(u.ns().className('android.view.View').text('唱歌'), 2, 5);
+        			}        
+				
+				o.println('start working');
+        			u.click(u.ns().className('android.view.View').text('开始打工'), 2, 5);
+      			} else {
+        			if (u.ns().className('android.view.View').textStartsWith('看直播').o() != null) {
+          				o.println('enter live');
+          				u.click(u.ns().className('android.view.View').textStartsWith('看直播'), 2, 5);
+          				u.getTask('diantao_watchlive').run();
+        			}
+			}
+		}    
+
+		o.println('enter earn power');
+    		if ((obj = u.ns().id('action-drink')) != null) {
+      			obj = obj.getFather().childClassName('android.widget.Image');
+    		}    
+		
+		if (obj != null) {
+      			u.click(obj).sleep(5, 10);
+
+      			o.println('earn power');
+      			if ((obj = u.ns().textContains('去观').o()) != null) {
+        			u.click(obj).sleep(2, 5);
+        			if (u.ns().id('com.taobao.live:id/taolive_room_watermark_text').o() != null) {
+          				u.getTask('diantao_watchlive').run();
+        			} else {
+          				u.getTask('diantao_watchvideo').run();
+        			}
+				
+				u.sleep(3, 5); 
+			}else{
+				o.println("earn power completed!");
+				break;
+			}
+		} 
+
+		o.println('enter work');
+    		if ((obj = u.ns().textContains('去观').o()) != null) {
+      			rect = obj.getFather().getFather().getFather().getChild(0).getBounds();
+      			rect.offset(0, -(rect.height()));
+      			u.click(rect).sleep(2, 5);
+    		}
+  	} 
+
+	o.println('back to center');
+  	u.back().sleep(2, 5);
+};
+
+u.addTask('diantao_walk').settype(u.TASK_ONETIME).setHours(0, 18).run = function() {
+	o.println('enter walk');
+  	if (!u.getTask('diantao_entercenter').run())
+    		return false;
+
+  	if ((obj = u.ns().text('走路赚元宝').o()) == null)
+    		return false;
+	
+	u.click(obj).sleep(5, 10);
+
+  	while (true) {
+    		if (u.ns().text('今日20000步已完成').o() != null) {
+      			o.println('completed!');
+      			break;
+    		}
+		
+		o.println('get steps or scores');
+    		while ((obj = u.ns().text('领取').o()) != null) {
+      			u.click(obj.getFather()).sleep(2, 5);
+      			if ((obj = u.ns().textContains('再得').o()) != null) {
+        			o.println('enter live');
+        			u.click(obj).sleep(2, 5);
+        			u.getTask('diantao_watchlive').run();
+      			}    
+		}    
+		
+		steps = 0;
+    		if ((obj = u.ns().text('可用步数').o()) != null) {
+      			steps = u.i(obj.getFather().getChild(1).getText());
+    		}    
+
+		if (steps > 0) {
+      			o.println('go');
+      			u.click(u.ns().text('出发'), 3, 5);
+    		}    
+
+		o.println('earn steps');
+		if((obj = u.ns().textContains("查看更多任务").o()) != null){
+			u.click(obj).sleep(5, 10);
+		}else{
+			u.click(u.ns().text('赚步数'), 5, 10);
+		}
+		
+    		if((obj = u.ns().textContains('去观').o()) != null) {
+      			u.click(obj).sleep(5, 10);
+      			if (u.ns().id('com.taobao.live:id/taolive_room_watermark_text').o() != null) {
+        			u.getTask('diantao_watchlive').run();
+      			} else {
+        			u.getTask('diantao_watchvideo').run();
+      			} 
+		}else{
+			o.println("earn steps completed!");
+			break;
+		}
+  	}  
+
+	o.println('back to center');
+  	u.back().sleep(2, 5);
+  	u.click(u.ns().text('我知道了'), 2, 5);
+
+  	return true;
+};
+
+u.addTask('diantao_egg').settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(20, 30).setinterval(300).run = function() {
+  	o.println('check egg...');
+	if (!u.getTask('diantao_entercenter').run())
+    		return false;
+
+  	if ((obj = u.ns().text('领取').o()) == null) 
+		return false;
+
+  	o.println('get coins');
+  	u.click(obj).sleep(2, 5);
+  	if ((obj = u.ns().textContains('去看').o()) != null) {
+    		u.click(obj).sleep(5, 10);
+    		u.getTask('diantao_watchlive').run();
+  	} else {
+    		u.back().sleep(2, 5);
+  	}  
+
+	return true;
+};
+
+u.addTask('diantao_sleepanddraw').settype(u.TASK_ONETIME).setHours(21, 23).run = function() {
+	o.println("sleep...");
+  	if (!u.getTask('diantao_entercenter').run()) 
+		return false;
+
+  	o.println('enter wakeup');
+	if((obj = u.ns().text('去睡觉').o()) == null)
+		return false;
+
+  	while (u.ns().text('去睡觉').o().getBounds().bottom == d.getDisplayHeight()) {
+    		u.scrollUp(u.ns().className('android.webkit.WebView').text('元宝中心'), 2, 5);
+		obj = u.ns().text('去睡觉').o();
+  	}
+	
+	u.click(obj).sleep(5, 10);
+
+	o.println('go to bed...');
+	u.click(u.ns().text('开始睡觉'), 2, 5);
+	u.back(2, 5);
+	
+	o.println("draw...");
+	if((obj = u.ns().text('去开奖').o()) == null)
+		return false;
+
+  	while (u.ns().text('去开奖').o().getBounds().bottom == d.getDisplayHeight()) {
+    		u.scrollUp(u.ns().className('android.webkit.WebView').text('元宝中心'), 2, 5);
+		obj = u.ns().text('去开奖').o();
+  	}
+	
+	u.click(obj).sleep(5, 10);
+	
+	o.println('draw lottery...');
+	u.click(u.ns().text('开奖中').o().getFatcher().getChild(4)).sleep(2, 5);
+	u.back(2, 5);
+
+      	o.println('watch ad');
+      	if ((obj = u.ns().textContains('再得').o()) != null) {
+        	u.click(obj).sleep(2, 5);
+        	if (u.ns().id('com.taobao.live:id/taolive_room_watermark_text').o() != null) {
+          		u.getTask('diantao_watchlive').run();
+        	} else {
+          		u.getTask('diantao_watchvideo').run();
+        	}
+	}
+
+	return true;
+};
+
+u.addTask('diantao_wakeup').settype(u.TASK_ONETIME).setHours(8, 18).run = function() {
+	o.println("wakeup...");
+  	if (!u.getTask('diantao_entercenter').run()) 
+		return false;
+
+  	o.println('enter wakeup');
+	if((obj = u.ns().text('去睡觉').o()) == null)
+		return false;
+
+  	while (u.ns().text('去睡觉').o().getBounds().bottom == d.getDisplayHeight()) {
+    		u.scrollUp(u.ns().className('android.webkit.WebView').text('元宝中心'), 2, 5);
+		obj = u.ns().text('去睡觉').o();
+  	}
+	
+	u.click(obj).sleep(5, 10);
+
+	o.println('get coins');
+	u.click(u.ns().text('我醒来啦'), 2, 5);
+
+      	o.println('watch ad');
+      	if ((obj = u.ns().textContains('再得').o()) != null) {
+        	u.click(obj).sleep(2, 5);
+        	if (u.ns().id('com.taobao.live:id/taolive_room_watermark_text').o() != null) {
+          		u.getTask('diantao_watchlive').run();
+        	} else {
+          		u.getTask('diantao_watchvideo').run();
+        	}
+	}
+	
+	u.back(2, 5);
+
+  	return true;
+};
+
+u.addTask('diantao_longtask').settype(u.TASK_SCHEDULE).setHours(18, 23).settimes(6, 10).setinterval(3600).run = function() {
+  	o.println('long task...');
+	if (!u.getTask('diantao_entercenter').run())
+    		return false;
+	
+	u.getTask("diantao_work").run();
+	u.getTask("diantao_walk").run();
+
+	return true;
+};
+
+/*aiqiyi*/
+u.addTask("aiqiyi_open").settype(u.TASK_INNER).run = function(){
+	o.println('open aiqiyi');
+
+	pkg = d.getCurrentPackageName();
+	if(pkg.equalsIgnoreCase('com.qiyi.video.lite')){
+		d.wakeUp();
+		return true;
+	}
+	
+	d.wakeUp();
+
+	if(!u.open('com.qiyi.video.lite'))
+		return false;
+	
+	u.sleep(10, 15);
+	u.click(u.ns().resourceId('com.android.packageinstaller:id/permission_deny_button'), 2, 5);
+	u.click(u.ns().resourceId('android:id/button2'), 2, 5);
+	u.click(u.ns().resourceId('com.qiyi.video.lite:id/cancel_btn'), 2, 5);
+	
+	return true;
+};
+
+u.addTask("aiqiyi_updatescore").settype(u.TASK_INNER).run = function(){
+	o.println("update score...");
+
+	if((obj = u.ns().descContains("金币明细").o()) != null){
+		cnt = obj.getFather().getChildCount();
+		i = 0;
+
+		score = "";
+		while(i < cnt){
+			text = obj.getFather().getChild(i).getDesc();
+			if(text.equalsIgnoreCase("约"))
+				break;
+
+			score = score + text;
+			i = i +1;
+		}
+		o.println(score);
+		if(score.contains("万")){
+			score = score.replace("万", "00").replace(".", "");
+			o.println(score);
+		}
+		u.updateScore("aiqiyi", score);
+		o.println("update socre success!");
+	}
+};
+
+u.addTask("aiqiyi_entercenter").settype(u.TASK_INNER).run = function(){
+	o.println('enter center');
+
+	if(!u.getTask("aiqiyi_open").run())
+		return false;
+
+	if((obj = u.ns().textContains("恭喜获得好友看视频奖励").o()) != null){
+		u.click(obj.getFather().getChild(4)).sleep(2, 5);
+	}
+
+	if(u.ns().descContains("活动规则").o() != null){
+		u.getTask("aiqiyi_updatescore").run();
+		return true;
+	}
+
+	while((obj = u.ns().textContains("赚钱").o()) == null){
+		u.back().sleep(2, 5);
+	}
+
+	if(obj != null){
+		u.click(obj.getParent()).sleep(2, 5);
+	}else{
+		u.click(obj2.getChild(2)).sleep(2, 5);
+	}
+
+	u.click(obj.getParent()).sleep(10, 20);
+	
+	u.click(u.ns().resourceId('com.qiyi.video.lite:id/cancel_btn'), 2, 5);
+
+	if(u.ns().text("今日已领").o() != null){
+		u.click(u.ns().NAF().resourceId('com.qiyi.video.lite:id/unused_res_a').index(1)).sleep(2, 5);
+	}
+
+	if((obj = u.ns().textContains("好友看视频奖励").o()) != null){
+		obj = obj.getFather();
+		u.click(obj.getChild(obj.getChildCount() - 1)).sleep(2, 5);
+	}
+
+	if((obj = u.ns().textContains("看视频再赚").o()) != null){
+		u.getTask("aiqiyi_ad").run(obj);
+	}
+
+	u.getTask("aiqiyi_updatescore").run();
+
+	return true;
+};
+
+u.addTask("aiqiyi_enterhome").settype(u.TASK_INNER).run = function(){
+	o.println('enter home');
+
+	if(!u.getTask("aiqiyi_open").run())
+		return false;
+
+	if(u.ns().text("电视剧").o() != null && u.ns().text("电影").o() != null)
+		return true;
+
+	while((obj = u.ns().textContains("首页").o()) == null && (obj2 = u.ns().resourceId('com.qiyi.video.lite:id/unused_res_a').className("android.widget.LinearLayout").o()) == null){
+		u.back().sleep(2, 5);
+	}
+
+	if(obj != null){
+		u.click(obj.getParent()).sleep(2, 5);
+	}else{
+		u.click(obj2.getChild(0)).sleep(2, 5);
+	}
+
+	return true;
+};
+
+u.addTask("aiqiyi_ad").settype(u.TASK_INNER).run = function(obj){
+	o.println('ad');
+
+	u.click(obj).sleep(10, 20);
+	while(u.ns().textContains("s后可领取奖励").o() != null){
+		o.println('sleep...');
+		u.sleep(10, 20);
+	}
+
+	u.back(2, 5)
+};
+
+u.addTask("aiqiyi_taskad").settype(u.TASK_ONETIME).setHours(0, 23).run = function(){
+	o.println('watchad');
+	
+	if(!u.getTask("aiqiyi_entercenter").run())
+		return false;
+	
+	while((obj = u.ns().descContains("金币轻松赚").o()) == null){
+		u.scrollUp(u.ns().className('android.widget.ScrollView'));
+	}
+
+	if(obj.getDesc().contains("明天再来")){
+		o.println("task completed!");
+		return true;
+	}
+
+	u.getTask("aiqiyi_ad").run(obj);
+
+	while((obj = u.ns().textContains("再赚").o()) != null){
+		u.getTask("aiqiyi_ad").run(obj);
+
+		o.println("sleep...");
+		u.sleep(2, 5);
+	}
+
+	u.click(u.ns().className("android.widget.TextView").text("好，我知道了"), 2, 5);
+	return true;
+};
+
+u.addTask("aiqiyi_box").settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(600).run = function(){
+	o.println('box');
+	
+	if(!u.getTask("aiqiyi_entercenter").run())
+		return false;
+	
+	if((obj = u.ns().className('android.view.View').desc('明日可领').o()) != null && obj.getChildCount() > 0){
+		o.println("task completed!");
+		return true;
+	}
+
+	if((obj = u.ns().className('android.view.View').desc('开宝箱领金币').o()) == null)
+		return false;
+
+	u.click(obj).sleep(2, 5);
+
+	if((obj = u.ns().className("android.widget.TextView").textContains("再赚").o()) != null){
+		u.getTask("aiqiyi_ad").run(obj);
+	}
+
+	u.click(u.ns().className("android.widget.TextView").text("好，我知道了"), 2, 5);
+	return true;
+};
+
+u.addTask("aiqiyi_watch").settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(600).run = function(){
+	o.println('watch');
+	
+	if(!u.getTask("aiqiyi_enterhome").run())
+		return false;
+	
+	u.click(u.ns().text("电视剧"), 5, 10);
+	u.click(u.ns().text("免费"), 5, 10);
+
+	obj = u.ns().className('androidx.recyclerview.widget.RecyclerView').o();
+	if(obj == null)
+		return false;
+
+	i = u.r(0, obj.getChildCount() - 1);
+	obj = obj.getChild(i);
+	if(obj == null)
+		return false;
+
+	u.click(obj).sleep(180, 300);
+	t = u.r(1, 3);
+	o.println("total:" + t);
+	while(t > 0){
+		o.println("scrollup...");
+		u.scrollUp(u.ns().className('androidx.viewpager.widget.ViewPager'), 600, 900);
+		
+		if(u.ns().textContains("全部视频已看完").o() != null){
+			o.println("all video completed!");
+			break;
+		}
+		
+		t = t - 1;
+	}
+	
+	return true;
+};
+
+/*toutiao*/
+u.addTask("toutiao_open").settype(u.TASK_INNER).run = function(){
+	o.println('open toutiao');
+
+	pkg = d.getCurrentPackageName();
+	if(pkg.equalsIgnoreCase('com.ss.android.article.lite')){
+		d.wakeUp();
+		return true;
+	}
+	
+	d.wakeUp();
+
+	if(!u.open('com.ss.android.article.lite'))
+		return false;
+
+	u.sleep(10, 15);
+	
+	return true;
+};
+
+u.addTask("toutiao_watchad").settype(u.TASK_INNER).run = function(){
+	o.println('watch ad');
+
+	obj = u.ns().textContains('再领').o();
+	if(obj != null){
+		u.click(obj).sleep(25, 35);
+		u.click(u.ns().className("android.widget.Button").text("不允许"), 2, 5);
+	}
+	
+	u.back(3, 5);
+
+	while((obj = u.ns().descContains('再看一个').o()) != null){
+		o.println("another ad...");
+		
+		if(u.ns().descContains('无新视频').o() != null){
+			u.back(2, 5);
+		}
+
+		u.click(obj).sleep(25, 35);
+		u.click(u.ns().className("android.widget.Button").text("不允许"), 2, 5);
+		if(u.ns().descContains('可领取奖励').o() == null){
+			u.back(2, 5);
+		}
+	}
+
+	if((obj = u.ns().descContains("坚持退出").o()) != null)
+		u.click(obj).sleep(2, 5);
+
+	return true;
+};
+
+u.addTask("toutiao_entertask").settype(u.TASK_INNER).run = function(){
+	o.println('enter task');
+
+	if(!u.getTask("toutiao_open").run())
+		return false;
+
+	if((obj = u.ns().textContains("我的金币").o()) != null){
+		u.updateIncScore("toutiao", obj.getText().split("金币：")[1]);
+		return true;
+	}
+
+	o.println('open task');
+	i = 3;
+	while((obj = u.ns().text("首页").o()) == null && i > 0){
+		o.println("back...");
+		u.back(2, 5);
+		i = i -1;
+	}
+
+	u.click(obj.getFather().getFather().getChild(2)).sleep(5, 10);
+
+	if( u.ns().textContains('再领').o() != null)
+		u.getTask('toutiao_watchad').run();
+
+	if((obj = u.ns().textContains("我的金币").o()) != null){
+		u.updateIncScore("toutiao", obj.getText().split("金币：")[1]);
+	}
+
+	if((obj = u.ns().textContains("检测到更新").o()) != null){
+		obj = obj.getFather();
+		if((obj = obj.getChild(obj.getChildCount() - 1)) != null){
+			o.println("close update...");
+			u.click(obj).sleep(2, 5);
+		}
+	}
+
+	return true;
+};
+
+u.addTask("toutiao_enterhome").settype(u.TASK_INNER).run = function(){
+	o.println('enter home');
+
+	if(!u.getTask("toutiao_open").run())
+		return false;
+
+	o.println('open home');
+	while((obj = u.ns().resourceId('android:id/tabs').o()) == null)
+		u.back(2, 5);
+
+	obj = obj.getChild(0);
+	
+	if(obj == null)
+		return false;
+
+	u.click(obj).sleep(2, 5);
+
+	return true;
+};
+
+u.addTask("toutiao_box").settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(600).run = function(){
+	o.println('box');
+	
+	if(!u.getTask("toutiao_entertask").run())
+		return false;
+
+	if((obj = u.ns().text('开宝箱得金币').o()) == null)
+		return false;
+
+	u.click(obj).sleep(2, 5);
+
+	if((obj = u.ns().className('android.view.View').text('开心收下').o()) != null){
+		u.click(obj).sleep(2, 5);
+		return true;
+	}else{
+		u.getTask("toutiao_watchad").run();
+	}
+	
+	return true;
+};
+
+
+u.addTask("toutiao_readarticle").settype(u.TASK_INNER).run = function(){
+	o.println('readarticle');
+
+	obj = u.ns().className("androidx.recyclerview.widget.RecyclerView").o();
+	if(obj == null || obj.getChildCount() == 0){
+		o.println("can't find main node...");
+		return false;	
+	}
+
+	if((obj = u.ns().descContains("不感兴趣").o()) == null){
+		o.println("not article!");
+		return false;	
+	}
+
+	u.click(obj).sleep(2, 5);
+	if(u.ns().textContains("看到此广告").o() != null){
+		o.println("fuck!ad...");
+
+		u.back(2, 5);
+		return false;
+	}else{
+		o.println("is article...");
+		u.back(2, 5);
+	}
+
+	if((obj = obj.getFather().getFather()) != null){
+		u.click(obj).sleep(2, 5);
+
+		i = u.r(10, 20);
+		o.println("read article total:" + i);
+
+		while(i > 0){
+			if(u.ns().className("android.widget.ProgressBar").o() == null){
+				o.println("scrollup...");
+
+				if((obj = u.ns().className('android.webkit.WebView').o()) == null){
+					if((obj = u.ns().className('androidx.viewpager.widget.ViewPager').o()) == null){
+						if((obj = u.ns().resourceId('com.ss.android.newugc:id/list_container').o()) == null)
+							obj = u.ns().className('android.widget.FrameLayout').o();
+					}
+				}
+				
+				if(obj == null){
+					o.println("sleep...");
+					u.sleep(5, 10);
+				}else{
+					u.scrollUp(obj).sleep(5, 10);
+				}
+
+				if(u.getTask('toutiao_readingcoin').run())
+					break;
+
+				if((obj = u.ns().textContains("搜索").o()) != null){
+					o.println("read article completed!");
+					break;
+				}
+			}else{
+				o.println("sleep...");
+				u.sleep(5, 10);
+			}
+
+			i = i - 1;
+		}
+		
+		u.back(2, 5);
+	}
+};
+
+u.addTask("toutiao_readingcoin").settype(u.TASK_INNER).run = function(){
+	o.println('readingcoin');
+
+	if((obj = u.ns().text('领金币').o()) != null){
+		o.println("get coin");
+		u.click(obj).sleep(5, 10);
+
+		u.getTask('toutiao_watchad').run();
+		return true;
+	}
+
+	return false;
+};
+
+u.addTask("toutiao_reading").settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).run = function(){
+	o.println('reading');
+	
+	if(!u.getTask("toutiao_enterhome").run())
+		return false;
+
+	times = u.r(30, 60);
+	o.println("reading total:" + times);
+
+	while(times > 0){
+		i = u.r(1, 3);
+		while(i > 0){
+			o.println("scrollup...");
+			u.scrollUp(u.ns().resourceId('com.ss.android.article.lite:id/d3'), 2, 5);
+
+			i = i - 1;
+		}
+
+		u.getTask('toutiao_readingcoin').run();
+		u.getTask('toutiao_readarticle').run();
+
+		times = times - 1;
+	}
+};
+
+/*douyin*/
+u.addTask('douyin_open').settype(u.TASK_INNER).run = function() {
+	o.println('open douyin');
+
+	pkg = d.getCurrentPackageName();
+	if (pkg.equalsIgnoreCase('com.ss.android.ugc.aweme.lite')){
+		if((obj = u.ns().text("我知道了").o()) != null){
+			o.println("I know...");
+			u.click(obj).sleep(3, 5);
+		}
+
+		return true; 
+	}
+	
+	d.wakeUp(); 
+
+	if(!u.open('com.ss.android.ugc.aweme.lite')) 
+		return false; 
+
+	u.sleep(10, 15);
+
+	if((obj = u.ns().text("我知道了").o()) != null){
+		o.println("I know...");
+		u.click(obj).sleep(3, 5);
+	}
+
+	if((obj = u.ns().textContains("收下").o()) != null){
+		o.println("hongbao...");
+		u.click(obj).sleep(3, 5);
+		u.back(2, 5);
+	}
+
+	if(u.ns().textContains("朋友推荐").o() != null){
+		u.back(2, 5);
+	}
+
+	if(u.ns().textContains("大额福利").o() != null){
+		u.back(2, 5);
+	}
+	
+	return true;
+};
+
+u.addTask('douyin_updatescore').settype(u.TASK_INNER).run = function() {
+	o.println("update score");
+	if ((obj = u.ns().text('金币收益').o()) != null){
+		obj = obj.getFather().getChild(1).getChild(0);
+		if(obj != null){
+			score = obj.getText().replace(",", "");
+			u.updateIncScore("douyin", score);
+			o.println("update score ok!");
+		}
+	}
+};
+
+u.addTask('douyin_entercenter').settype(u.TASK_INNER).run = function() {
+	o.println('enter center');  
+	if (!u.getTask('douyin_open').run())
+		return false;  
+
+	if (u.ns().text('赚钱任务').o() != null)
+		return true;
+
+	if (u.ns().text('金币收益').o() != null && u.ns().text('现金收益').o() != null){
+		u.getTask('douyin_updatescore').run();
+		return true;
+	}
+
+	obj = u.ns().textContains("开宝箱").o();
+	if(obj == null){
+		obj = u.ns().textContains("金币").o();
+	}else{
+		obj = obj.getFather();
+	}
+
+	if(obj == null)
+		return false;
+
+	u.click(obj).sleep(10, 15);
+
+	if((obj = u.ns().textContains("你的好友昨天").o()) != null){
+		obj = obj.getFather();
+		u.click(obj.getChild(obj.getChildCount() - 1)).sleep(2, 5);
+	}
+
+	u.getTask("douyin_sign").run();
+
+	if((obj = u.ns().textContains("获得限时福利").o()) != null)
+		u.click(obj.getFather().getChild(4)).sleep(2, 5);
+	
+	o.println("enter center ok!");
+	u.getTask('douyin_updatescore').run();
+
+	return true;
+};
+
+u.addTask('douyin_sign').settype(u.TASK_INNER).run = function() {
+	o.println("sign...");
+	if((obj = u.ns().textContains("立即签到").o()) != null){
+		u.click(obj).sleep(3, 5);
+
+		if((obj = u.ns().textContains("再赚").o()) != null){
+			o.println("gain coins...");
+			u.getTask("douyin_watchad").run(obj);
+		}
+		
+		o.println("sign ok!");
+		return true;
+	}
+
+	return false;
+};
+
+u.addTask('douyin_enterhome').settype(u.TASK_INNER).run = function() {  
+	o.println('enter home');  
+	if (!u.getTask('douyin_open').run())
+		return false;  
+
+	if(u.ns().text('赚钱任务').o() != null || u.ns().text('金币收益').o() != null){
+		o.println("in center...back...");
+		u.back(2, 5);
+	}
+
+	while(u.ns().textContains("首页").o() == null){
+		o.println("back...");
+		u.back(2, 5);
+	}
+
+	return true; 
+};
+
+u.addTask('douyin_watchad').settype(u.TASK_INNER).run = function(obj) {
+	if(obj == null)
+		return false;
+
+	o.println('watchad');
+	while(obj != null){
+		o.println("ad...");		
+		u.click(obj).sleep(20, 30);  
+
+		while (u.ns().descContains("后可领取奖励").o() != null) {
+			o.println("wait...");    
+			u.sleep(5, 10);  
+		} 
+		
+		u.back(2, 5);
+		obj = u.ns().descContains("再看").o();
+	}
+	
+	o.println('exit ad');
+	return true;
+};
+
+u.addTask('douyin_box').settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(900).run = function() {
+	o.println("box");
+	if (!u.getTask('douyin_entercenter').run()){
+		u.getTask('douyin_reading').run();
+		return false; 
+	}
+
+	if ((obj = u.ns().className('android.view.View').text('开宝箱得金币').o()) == null){
+		obj = u.ns().text('开宝箱得金币').o();
+		if(obj != null)
+			o.println("wait for next time..." + obj.getFather().getChild(1).getText());
+		return false;
+	}
+
+	o.println('open box');  
+	u.click(obj).sleep(5, 10);
+
+	if((obj = u.ns().textContains("再赚").o()) != null)
+		u.getTask('douyin_watchad').run(obj);
+	
+	u.back(2, 5);
+	return true;
+};
+
+u.addTask('douyin_reading').settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(900).run = function() {
+	o.println("reading");
+	if (!u.getTask('douyin_enterhome').run())
+		return false;  
+
+	times = u.r(5, 10);
+	o.println("total:" + times);
+	while(times > 0){
+		o.println("scroll...");
+		u.scrollUp(u.ns().className('androidx.viewpager.widget.ViewPager').desc("视频"), 5, 15);
+		
+		if((obj = u.ns().textContains("红包砸中").o()) != null){
+			obj = obj.getFather().getFather();
+			if((obj = obj.getChild(2)) != null){
+				o.println("hongbao...");
+				u.click(obj).sleep(2, 5);
+				u.click(u.ns().NAF().resourceId('com.ss.android.ugc.aweme.lite:id/bai'), 2, 5);
+			}
+		}
+
+		times = times - 1;
+	}
+
+	return true;
+};
+
+/*fanqie*/
+u.addTask('fanqie_open').settype(u.TASK_INNER).run = function() {
+	o.println('open fanqie');
+
+	pkg = d.getCurrentPackageName();
+	if (pkg.equalsIgnoreCase('com.dragon.read')) 
+		return true;  
+	
+	d.wakeUp(); 
+
+	if(!u.open('com.dragon.read')) 
+		return false; 
+
+	u.sleep(5, 10);
+	u.click(u.ns().className("android.widget.TextView").text("取消"), 2, 5);
+	
+	return true;
+};
+
+u.addTask('fanqie_entertask').settype(u.TASK_INNER).run = function() {
+	o.println('enter task');  
+	if (!u.getTask('fanqie_open').run())
+		return false;  
+
+	if (u.ns().textContains('金币余额').o() != null)
+		return true;
+	
+	i = 5;
+	while((obj = u.ns().text("福利").o()) == null  && i > 0){
+		o.println("back...");
+		u.back(2, 5);
+		i = i - 1;
+	}
+
+	if(obj == null)
+		return false;
+
+	u.click(obj).sleep(10, 15);
+
+	while((obj = u.ns().textContains("再领").o()) != null)
+		u.getTask('fanqie_watchad').run(obj);
+
+	if((obj = u.ns().textContains("以后再说").o()) != null)
+		u.click(obj).sleep(2, 5);
+
+	o.println("enter center ok!");
+	u.getTask('fanqie_updatescore').run();
+
+	return true;
+};
+
+u.addTask('fanqie_enterhome').settype(u.TASK_INNER).run = function() {  
+	o.println('enter home');  
+	if (!u.getTask('fanqie_open').run())
+		return false;  
+
+	i = 5;
+	while((obj = u.ns().textContains("书城").o()) == null && i > 0){
+		o.println("back...");
+		u.back(2, 5);
+		i = i - 1;
+	}
+
+	u.click(obj).sleep(2, 5);
+
+	return true; 
+};
+
+
+u.addTask('fanqie_updatescore').settype(u.TASK_INNER).run = function() {
+	o.println("update score");
+	if ((obj = u.ns().textContains('金币余额').o()) != null){
+		obj = obj.getFather().getChild(1);
+		if(obj != null){
+			score = obj.getText();
+			u.updateIncScore("fanqie", score);
+			o.println("update score ok!:" + score);
+		}
+	}
+};
+
+u.addTask('fanqie_watchad').settype(u.TASK_INNER).run = function(obj) {
+	if(obj == null)
+		return false;
+
+	o.println('watchad');
+	u.click(obj).sleep(10, 15);
+
+	while ((obj = u.ns().descContains('后可领取').o()) != null) {
+		o.println("wait..."); 
+		u.sleep(5, 10); 
+	} 
+
+	while(u.ns().descContains('广告').o() != null){
+		o.println('exit ad');
+		u.back(2, 5);
+	}
+	
+	return true;
+};
+
+u.addTask('fanqie_taskad').settype(u.TASK_ONETIME).setHours(0, 23).run = function() {
+	o.println("taskad");
+	if (!u.getTask('fanqie_entertask').run())
+		return false; 
+	
+	if((obj = u.ns().textContains('看视频').o()) == null){
+			o.println("can't find taskad...or task is completed!");
+			return true;
+	}
+	
+	obj = obj.getFather().getFather().getChild(1);
+	if(obj != null && obj.getChildCount() > 0)
+		obj = obj.getChild(0);
+
+	while(obj != null && !obj.getText().contains("完成")){
+		if(obj.getText().contains(":")){
+			o.println("wait for time up...");
+			u.sleep(20, 30);
+		}else{
+			u.getTask('fanqie_watchad').run(obj);
+			u.sleep(3, 5);
+		}
+
+		obj = u.ns().textContains('看视频').o();
+		if(obj == null)
+			break;
+
+		obj = obj.getFather().getFather().getChild(1);
+		if(obj != null && obj.getChildCount() > 0)
+			obj = obj.getChild(0);
+	}
+	
+	o.println("task completed!");
+	return true;
+};
+
+u.addTask('fanqie_reading').settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(3, 3).setinterval(3600).run = function() {
+	o.println("reading");
+	if (!u.getTask('fanqie_enterhome').run())
+		return false; 
+
+	o.println("go reading...");
+	obj = u.ns().className("android.support.v7.widget.RecyclerView").index(1);
+	if(obj == null){
+		o.println("main obj is null...");
+		return false;
+	}
+
+	i = u.r(0, obj.getChildCount() - 1);
+		
+	o.println("index:" + i);
+	child = obj.getChild(i);
+	u.click(child).sleep(3, 5);
+		
+	o.println("play...");
+	if((obj = u.ns().NAF().className('android.widget.FrameLayout').o()) != null){
+		u.click(obj).sleep(3, 5);
+	}
+	
+	return true;
+};
+
+/*kuaishou*/
+u.addTask('kuaishou_open').settype(u.TASK_INNER).run = function() {
+	o.println('open kuaishou');
+
+	pkg = d.getCurrentPackageName();
+	if (pkg.equalsIgnoreCase('com.kuaishou.nebula')) 
+		return true;  
+	
+	d.wakeUp(); 
+
+	if(!u.open('com.kuaishou.nebula')) 
+		return false; 
+
+	u.sleep(5, 10);
+	u.click(u.ns().NAF().resourceId('com.kuaishou.nebula:id/close'), 2, 5);
+	
+	return true;
+};
+
+u.addTask('kuaishou_entertask').settype(u.TASK_INNER).run = function() {
+	o.println('enter task'); 
+	if (!u.getTask('kuaishou_open').run())
+		return false;  
+
+	if (u.ns().textContains('我的金币').o() != null)
+		return true;
+	
+	i = 5;
+	while((obj = u.ns().resourceId('com.kuaishou.nebula:id/circular_progress_bar').o()) == null  && i > 0){
+		o.println("back...");
+		u.back(2, 5);
+		i = i - 1;
+	}
+
+	if(obj == null)
+		return false;
+
+	u.click(obj).sleep(10, 15);
+
+	o.println("enter center ok!");
+	u.getTask('fanqie_updatescore').run();
+
+	return true;
+};
+
+u.addTask('kuaishou_updatescore').settype(u.TASK_INNER).run = function() {
+	o.println("update score");
+	if ((obj = u.ns().textContains('我的金币').o()) != null){
+		obj = obj.getFather().getChild(1);
+		if(obj != null){
+			score = "";
+			cnt = obj.getChildCount();
+			i = 0;
+			
+			while(i < cnt){
+				score = score + obj.getChild(i).getText();
+				i = i + 1;
+			}
+
+			u.updateIncScore("kuaishou", score);
+			o.println("update score ok!:" + score);
+		}
+	}
+};
+
+u.addTask('kuaishou_enterhome').settype(u.TASK_INNER).run = function() {  
+	o.println('enter home');  
+	if (!u.getTask('kuaishou_open').run())
+		return false;  
+
+	i = 5;
+	while((obj = u.ns().NAF().resourceId('com.kuaishou.nebula:id/left_btn').o()) == null && i > 0){
+		o.println("back...");
+		u.back(2, 5);
+		i = i - 1;
+	}
+	
+	o.println("enter home ok!");
+
+	return true; 
+};
+
+u.addTask('kuaishou_box').settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(1200).run = function() {
+	o.println("box");
+	if (!u.getTask('kuaishou_entercenter').run()){
+		return false; 
+	}
+
+	i = 0;
+	while(i < u.ns().NAF().size()){
+		obj = u.ns().NAF().index(i);
+		if(obj.getBounds().height() > 150 && obj.getBounds().height() < 200){
+			o.println("find obj!");
+			u.click(obj).sleep(2, 5);
+
+			u.back(2, 5);
+			break;
+		}
+
+		i = i + 1;
+	}
+	
+	return true;
+};
+
+u.addTask('kuaishou_reading').settype(u.TASK_SCHEDULE).setHours(0, 23).settimes(5, 10).setinterval(600).run = function() {
+	o.println("reading");
+	if (!u.getTask('kuaishou_enterhome').run())
+		return false; 
+
+	times = u.r(20, 30);
+	o.println("total:" + times);
+	while(times > 0){
+		o.println("scroll...");
+		u.scrollUp(u.ns().className('androidx.slidingpanelayout.widget.SlidingPaneLayout'), 5, 15);
+
+		times = times - 1;
+	}
+
+	return true;
+};
+
+while(true){
+	if(u.hour() >= 1 && u.hour() <= 5){
+		o.println("night sleep!");
+		u.sleep(3600 * 6, 3600 * 6);
+		u.resetTasks();
+	}
+
+	while((task = u.getRandomATask()) != null){
+		name = task.getname();
+		o.println("task:" + name);
+		start = u.time();
+
+		if(task.run()){
+			dura = u.time() - start;
+			o.println("task success!" + name + " dura(s):" + dura);
+			u.updateDura(name.split("_")[0], dura);
+
+			task.update();
+		}else{
+			task.updatetime();
+		}
+
+		/*if(u.hour() >= 9 && u.hour() <= 10){
+			o.println("morning wok!");
+			u.sleep(3600 * 2);
+		}
+
+		if(u.hour() >= 14 && u.hour() <= 15){
+			o.println("afternoon wok!");
+			u.sleep(3600 * 2);
+		}*/
+
+	}
+
+	o.println("no task!");
+	o.println("sleep...");
+	u.sleep(60, 120);
+}
+
